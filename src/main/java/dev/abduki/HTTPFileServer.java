@@ -1,25 +1,28 @@
 package dev.abduki;
 
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.URI;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class HTTPFileServer {
-    private final int port;
     private boolean isServerRunning = false;
 
-    private RequestParser parser;
-    private RequestRouter router;
+    private ServerSocket serverSocket;
+    private Socket clientSocket;
 
-    public HTTPFileServer(int port, URI filePath) {
-        this.port = port;
+    private RequestParser requestParser;
+    private RequestRouter requestRouter;
+
+    public void start(int port) throws IOException {
         isServerRunning = true;
 
-        router = new RequestRouter(filePath);
-    }
+        serverSocket = new ServerSocket(port);
+        clientSocket = serverSocket.accept();
 
-    public void start() {
-        isServerRunning = true;
+        requestParser = new RequestParser();
+        requestRouter = new RequestRouter();
     }
 
     public void stop() {
@@ -36,9 +39,5 @@ public class HTTPFileServer {
         } catch (UnknownHostException e) {
             throw new RuntimeException("The hosts IP address could not be fetched! \n" + e);
         }
-    }
-
-    public int getPort() {
-        return this.port;
     }
 }
