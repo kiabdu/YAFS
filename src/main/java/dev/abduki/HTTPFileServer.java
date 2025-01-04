@@ -1,15 +1,20 @@
 package dev.abduki;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 
 public class HTTPFileServer {
     private final int port;
     private boolean isServerRunning = false;
 
-    public HTTPFileServer(int port) {
+    private RequestRouter router;
+
+    public HTTPFileServer(int port, URI filePath) {
         this.port = port;
         isServerRunning = true;
+
+        router = new RequestRouter(filePath);
     }
 
     public void start() {
