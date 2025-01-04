@@ -7,28 +7,75 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 
 public class RequestParser {
     private BufferedReader in;
     private PrintWriter out;
+    private final String h1 = "Index of ";
 
     public URI parse() throws URISyntaxException, IOException {
         System.out.println("message readed succesly");
 
-        // client request
-        List<String> clientSocketRequestLines = in.lines().toList();
+        // http request header format: (0) <HTTP_METHOD> (1) <REQUEST_URI> (2) <HTTP_VERSION>
+        String httpRequestHeader = in.readLine();
+        String[] requestHeaderParts;
 
-        System.out.println("liest size: " + clientSocketRequestLines.size());
-
-        for (String s : clientSocketRequestLines) {
-            System.out.println("mielz");
-            System.out.println(s);
+        try {
+            requestHeaderParts = httpRequestHeader.split("\\s+");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("requestHeader was null! \n");
         }
 
-        System.out.println("jielz");
-        // server response
-        return new URI("tehst");
+        String requestMethod = requestHeaderParts[0];
+        URI requestURI = new URI(requestHeaderParts[1]);
+        // I dont really need the http version currently but might use it in the future
+        // String httpVersion = requestHeaderParts[2];
+
+        switch (requestMethod) {
+            case "GET":
+                System.out.println("request was getted");
+                break;
+            default:
+                System.out.println("request was not knowed");
+        }
+
+        return requestURI;
+    }
+
+    public void send(String message) {
+        /*
+         * response according to:
+         * https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
+         *
+         * status line: HTTP/<HTTP_VERSION> <STATUS_CODE> <STATUS_PHRASE> \r\n
+         * entity header: Content-Type: <CONTENT_TYPE> \r\n
+         * entity header: Content-Length: <RESPONSE_CONTENT_BYTES_LENGTH> \r\n
+         * CRLF: \r\n
+         * message body: my htmlBody below in this case
+         */
+        String htmlBody = String.format("""
+                <!DOCTYPE html>
+                <html lang="en">
+                <head><title>%s</title></head>
+                <body>
+                <h1>%s</h1>
+                <hr />
+                <p> here should be some links <p>
+                <hr />
+                </body>
+                </html>
+                """, h1, h1);
+
+        int contentLength = htmlBody.getBytes().length;
+
+        String httpResponse = "HTTP/1.1 200 OK" +
+                "Content-Type: text/html\r\n" +
+                "Content-Length: " + contentLength + "\r\n" +
+                "\r\n" +
+                htmlBody;
+
+        out.write(httpResponse);
+        out.flush();
     }
 
     public void start(Socket clientSocket) throws IOException {
