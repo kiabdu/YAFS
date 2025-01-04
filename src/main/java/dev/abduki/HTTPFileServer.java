@@ -5,6 +5,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
+import java.util.Map;
 
 public class HTTPFileServer {
 
@@ -23,12 +25,14 @@ public class HTTPFileServer {
             requestParser = new RequestParser();
             requestParser.start(clientSocket);
             URI requestedPath = requestParser.parse();
-            requestParser.send("halo mielzkorpf");
+            System.out.println(requestedPath);
+
+            Map<String, LocalDate> files = requestRouter.getFiles(requestedPath);
+
+            requestParser.send(files);
+            requestParser.flush();
             requestParser.stop();
-
-            System.out.println("requested path: " + requestedPath);
             clientSocket.close();
-
             System.out.println("socket and readers have been closeded");
         }
 

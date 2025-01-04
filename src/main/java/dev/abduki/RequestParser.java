@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
+import java.util.Map;
 
 public class RequestParser {
     private BufferedReader in;
@@ -42,7 +44,10 @@ public class RequestParser {
         return requestURI;
     }
 
-    public void send(String message) {
+    public void send(Map<String, LocalDate> files) {
+
+        String htmlBodyList
+
         /*
          * response according to:
          * https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
@@ -86,5 +91,9 @@ public class RequestParser {
     public void stop() throws IOException {
         in.close();
         out.close();
+    }
+
+    public void flush() {
+        out.flush();
     }
 }
