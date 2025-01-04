@@ -8,6 +8,7 @@ public class HTTPFileServer {
     private final int port;
     private boolean isServerRunning = false;
 
+    private RequestParser parser;
     private RequestRouter router;
 
     public HTTPFileServer(int port, URI filePath) {
