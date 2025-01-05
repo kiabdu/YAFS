@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -41,24 +43,28 @@ public class RequestParser {
                 System.out.println("request was not knowed");
         }
 
+        switch (requestURI.getPath()) {
+            case "/":
+                System.out.println(String.format("request for %s was getted", requestURI));
+                break;
+            default:
+                System.out.println("request definitely was NOt getted");
+        }
+
         return requestURI;
     }
 
-    public void send(Map<String, LocalDate> files) {
+    public void send(Map<String, LocalDate> files) throws IOException {
 
-        String htmlURIList = "";
+        StringBuilder htmlURIList = new StringBuilder();
 
+        // dynamically creates a html div element for every entry of the map
         for (var entry : files.entrySet()) {
-            htmlURIList += String.format("""
-                    <li>
-                        <div style="text-align: left;">
-                            <a href="%s">%s</a>
-                            <div style="float:right;">
-                                <p>%s</p>
-                            </div>
-                        </div>
-                    </li>
-                    """, entry.getKey(), entry.getKey(), entry.getValue());
+            htmlURIList.append(String.format("""
+                    <div style="text-align: left;">
+                        <a href="%s">%s</a>
+                        %s
+                    </div>""", entry.getKey(), entry.getKey(), entry.getValue()));
         }
 
         /*
@@ -71,29 +77,16 @@ public class RequestParser {
          * CRLF: \r\n
          * message body: my htmlBody below in this case
          */
-        String htmlBody = String.format("""
-                <!DOCTYPE html>
-                <html lang="en">
-                    <head><title>%s</title></head>
-                    <body>
-                        <h1>%s</h1>
-                        <hr />
-                        <ul>
-                            %s
-                        <ol>
-                        <hr />
-                    </body>
-                </html>
-                """, h1, h1, htmlURIList);
+        String fromFile = Files.readString(Path.of("src/main/resources/response/200_ok.html"));
+        System.out.println(fromFile);
 
-        int contentLength = htmlBody.getBytes().length;
+        // replace %s with dynamic values, calculate html body byte length, replace %s for content length with actual length
+        String httpResponse = String.format(fromFile, "%s", "ok", "ok", htmlURIList);
+        int contentLength = fromFile.substring(fromFile.indexOf('<')).getBytes().length;
+        httpResponse = String.format(httpResponse, contentLength);
 
-        String httpResponse = "HTTP/1.1 200 OK" +
-                "Content-Type: text/html\r\n" +
-                "Content-Length: " + contentLength + "\r\n" +
-                "\r\n" +
-                htmlBody;
-
+        System.out.println(" // --------------------" +
+                "response: \n" + httpResponse);
         out.write(httpResponse);
         out.flush();
     }

@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class HTTPFileServer {
             requestParser.start(clientSocket);
             URI requestedPath = requestParser.parse();
             requestRouter = new RequestRouter();
-            Map<String, LocalDate> files = requestRouter.getFiles(requestedPath);
+            Map<String, LocalDate> files = requestRouter.getFiles(Path.of("/home/abdu/Downloads"));
 
             requestParser.send(files);
             requestParser.flush();

@@ -1,8 +1,6 @@
 package dev.abduki;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -20,14 +18,14 @@ public class RequestRouter {
     }
     */
 
-    public Map<String, LocalDate> getFiles(URI filePath) {
+    public Map<String, LocalDate> getFiles(Path filePath) {
         System.out.println("path: " + filePath);
 
-        File folder = new File(filePath);
+        File folder = new File(filePath.toString());
         HashMap<String, LocalDate> fileInformationMap = new HashMap<>();
 
 
-        if (!Files.exists(Path.of(filePath))) {
+        if (!Files.exists(filePath)) {
             // TODO: serialize 404 file and return it
         }
 
@@ -49,18 +47,12 @@ public class RequestRouter {
     private String[] extractInformationFromFile(File file) {
         String[] information = new String[2];
 
-        URI filePath;
-        try {
-            filePath = new URI(file.getPath());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Invalid URI! \n" + e);
-        }
-
+        Path filePath = Path.of(file.getPath());
         LocalDate lastModified = LocalDate.ofInstant(
                 Instant.ofEpochMilli(file.lastModified()),
                 ZoneId.systemDefault());
 
-        information[0] = filePath.getPath();
+        information[0] = filePath.toString();
         information[1] = lastModified.toString();
 
         return information;
