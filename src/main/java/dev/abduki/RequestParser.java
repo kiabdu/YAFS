@@ -46,7 +46,20 @@ public class RequestParser {
 
     public void send(Map<String, LocalDate> files) {
 
-        String htmlBodyList
+        String htmlURIList = "";
+
+        for (var entry : files.entrySet()) {
+            htmlURIList += String.format("""
+                    <li>
+                        <div style="text-align: left;">
+                            <a href="%s">%s</a>
+                            <div style="float:right;">
+                                <p>%s</p>
+                            </div>
+                        </div>
+                    </li>
+                    """, entry.getKey(), entry.getKey(), entry.getValue());
+        }
 
         /*
          * response according to:
@@ -61,15 +74,17 @@ public class RequestParser {
         String htmlBody = String.format("""
                 <!DOCTYPE html>
                 <html lang="en">
-                <head><title>%s</title></head>
-                <body>
-                <h1>%s</h1>
-                <hr />
-                <p> here should be some links <p>
-                <hr />
-                </body>
+                    <head><title>%s</title></head>
+                    <body>
+                        <h1>%s</h1>
+                        <hr />
+                        <ul>
+                            %s
+                        <ol>
+                        <hr />
+                    </body>
                 </html>
-                """, h1, h1);
+                """, h1, h1, htmlURIList);
 
         int contentLength = htmlBody.getBytes().length;
 

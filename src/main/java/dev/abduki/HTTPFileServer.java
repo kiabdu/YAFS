@@ -25,15 +25,13 @@ public class HTTPFileServer {
             requestParser = new RequestParser();
             requestParser.start(clientSocket);
             URI requestedPath = requestParser.parse();
-            System.out.println(requestedPath);
-
+            requestRouter = new RequestRouter();
             Map<String, LocalDate> files = requestRouter.getFiles(requestedPath);
 
             requestParser.send(files);
             requestParser.flush();
             requestParser.stop();
             clientSocket.close();
-            System.out.println("socket and readers have been closeded");
         }
 
         //serverSocket.close();
