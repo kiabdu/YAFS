@@ -3,6 +3,8 @@ package dev.abduki;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -20,8 +22,14 @@ public class RequestRouter {
 
     public Map<String, LocalDate> getFiles(URI filePath) {
         System.out.println("path: " + filePath);
+
         File folder = new File(filePath);
         HashMap<String, LocalDate> fileInformationMap = new HashMap<>();
+
+
+        if (!Files.exists(Path.of(filePath))) {
+            // TODO: serialize 404 file and return it
+        }
 
         if (folder.isFile()) {
             String[] fileInformation = extractInformationFromFile(folder);
