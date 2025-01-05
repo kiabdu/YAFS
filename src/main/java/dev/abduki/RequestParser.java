@@ -40,7 +40,7 @@ public class RequestParser {
     }
 
     public void send(Map<String, LocalDate> files) throws IOException {
-        String httpResponse = "";
+        String httpResponse;
 
         // in RequestRouter we checked if the filepath exists, else null is returned
         if (files == null) {
@@ -65,8 +65,8 @@ public class RequestParser {
 
     public String generateHttpResponseBody(ResponseType responseType, Map<String, LocalDate> files) throws IOException {
         String httpResponse = "";
-        String htmlBody = "";
-        int contentLength = 0;
+        String htmlBody;
+        int contentLength;
 
         String httpResponseUnformatted = """
                 HTTP/1.1 %s

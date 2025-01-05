@@ -32,7 +32,6 @@ public class HTTPFileServer {
             fileHandler = new FileHandler();
             System.out.println(baseFilePath.toString() + requestedPath);
             Map<String, LocalDate> files = fileHandler.getFiles(Path.of(baseFilePath.toString() + requestedPath.toString()));
-            requestedPath = Path.of("");
             requestParser.send(files);
             requestParser.stop();
             clientSocket.close();
