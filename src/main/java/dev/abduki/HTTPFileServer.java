@@ -18,7 +18,7 @@ public class HTTPFileServer {
     private RequestParser requestParser;
     private FileHandler fileHandler;
 
-    Path baseFilePath;
+    public static Path baseFilePath;
 
     public void start(int port) throws IOException, URISyntaxException {
         serverSocket = new ServerSocket(port);
@@ -30,17 +30,14 @@ public class HTTPFileServer {
             requestParser.start(clientSocket);
             Path requestedPath = requestParser.parse();
             fileHandler = new FileHandler();
-            Map<String, LocalDate> files = fileHandler.getFiles(Path.of("/home/abdu/Downloads"));
-
+            System.out.println(baseFilePath.toString() + requestedPath);
+            Map<String, LocalDate> files = fileHandler.getFiles(Path.of(baseFilePath.toString() + requestedPath.toString()));
+            requestedPath = Path.of("");
             requestParser.send(files);
             requestParser.stop();
             clientSocket.close();
         }
 
         //serverSocket.close();
-    }
-
-    public void setFilePath(String baseFilePath) {
-        this.baseFilePath = Path.of(baseFilePath);
     }
 }

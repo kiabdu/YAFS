@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Map;
@@ -21,9 +20,7 @@ public class RequestParser {
     private final String RESPONSE_OK_FILEPATH = "src/main/resources/response/200_ok.html";
     private final String RESPONSE_NOT_FOUND_FILEPATH = "src/main/resources/response/404_not_found.html";
 
-    public Path parse() throws URISyntaxException, IOException {
-        System.out.println("message readed succesly");
-
+    public Path parse() throws IOException {
         // http request header format: (0) <HTTP_METHOD> (1) <REQUEST_URI> (2) <HTTP_VERSION>
         String httpRequestHeader = in.readLine();
         String[] requestHeaderParts;
@@ -84,12 +81,15 @@ public class RequestParser {
                 String htmlBodyNotFormatted = FileHandler.serializeResponseFile(RESPONSE_OK_FILEPATH);
 
                 // dynamically creates a html div element for every entry of the map
+                System.out.print("// ----- request entries:\t");
                 for (var entry : files.entrySet()) {
+                    System.out.println(String.format("%s:%s", entry.getKey(), entry.getValue()));
+                    String filePathWithoutBasePath = entry.getKey().replace(HTTPFileServer.baseFilePath.toString(), "");
                     htmlURIList.append(String.format("""
                             <div>
                                 <a href="%s">%s</a>
                                 %s
-                            </div>""", entry.getKey(), entry.getKey(), entry.getValue()));
+                            </div>""", filePathWithoutBasePath, entry.getKey(), entry.getValue()));
                 }
 
                 htmlBody = String.format(htmlBodyNotFormatted, "ok man", "ok", htmlURIList);
@@ -100,11 +100,10 @@ public class RequestParser {
             case NOT_FOUND:
                 htmlBody = FileHandler.serializeResponseFile(RESPONSE_NOT_FOUND_FILEPATH);
                 contentLength = FileHandler.getFileContentLength(htmlBody);
-                httpResponse = String.format(httpResponseUnformatted, "400 Not Found", contentLength, htmlBody);
+                httpResponse = String.format(httpResponseUnformatted, "404 Not Found", contentLength, htmlBody);
                 break;
         }
 
-        System.out.println(httpResponse);
         return httpResponse;
     }
 }
