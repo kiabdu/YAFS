@@ -16,9 +16,11 @@ public class RequestParser {
     private BufferedReader in;
     private PrintWriter out;
 
-    private final String INDEX = "Index of ";
+    private final String INDEX = "Index of " + HTTPFileServer.baseFilePath;
     private final String RESPONSE_OK_FILEPATH = "src/main/resources/response/200_ok.html";
     private final String RESPONSE_NOT_FOUND_FILEPATH = "src/main/resources/response/404_not_found.html";
+
+    private String tmpCurrentPath;
 
     public Path parse() throws IOException {
         // http request header format: (0) <HTTP_METHOD> (1) <REQUEST_URI> (2) <HTTP_VERSION>
@@ -36,6 +38,7 @@ public class RequestParser {
         // I dont really need the http version currently but might use it in the future
         // String httpVersion = requestHeaderParts[2];
 
+        tmpCurrentPath = requestPath.toString();
         return requestPath;
     }
 
@@ -92,7 +95,7 @@ public class RequestParser {
                             </div>""", filePathWithoutBasePath, entry.getKey(), entry.getValue()));
                 }
 
-                htmlBody = String.format(htmlBodyNotFormatted, "ok man", "ok", htmlURIList);
+                htmlBody = String.format(htmlBodyNotFormatted, INDEX + tmpCurrentPath, INDEX + tmpCurrentPath, htmlURIList);
                 contentLength = FileHandler.getFileContentLength(htmlBody);
                 httpResponse = String.format(httpResponseUnformatted, "200 OK", contentLength, htmlBody);
                 break;
