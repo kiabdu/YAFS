@@ -3,10 +3,7 @@ package dev.abduki;
 import dev.abduki.types.ResponseType;
 import dev.abduki.util.FileHandler;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -15,6 +12,7 @@ import java.util.Map;
 public class RequestParser {
     private BufferedReader in;
     private PrintWriter out;
+    private BufferedOutputStream fileOut;
 
     private final String INDEX = "Index of " + HTTPFileServer.baseFilePath;
     private final String RESPONSE_OK_FILEPATH = "src/main/resources/response/200_ok.html";
@@ -44,10 +42,27 @@ public class RequestParser {
 
     public void send(Map<String, LocalDate> files) throws IOException {
         String httpResponse;
+        // single element? -> probably a file -> get path -> check file status -> second cases
+        // condition
+        String singleFilePath = files.size() == 1 ? files.entrySet().iterator().next().getKey() : "";
+        File singleFile = singleFilePath.length() >= 1 ? new File(singleFilePath) : null;
 
         // in RequestRouter we checked if the filepath exists, else null is returned
         if (files == null) {
             httpResponse = generateHttpResponseBody(ResponseType.NOT_FOUND, null);
+        } else if (files.size() == 1 && (singleFile != null && singleFile.isFile())) {
+
+            byte[] fileAsByteStream = new byte[(int) singleFile.length()];
+
+            // read file as stream, write it to fileoutputstream which uses clientSockets outputstream
+            FileInputStream inputStream = new FileInputStream(singleFile);
+            DataInputStream fileIn = new DataInputStream(new BufferedInputStream(singleFile));
+            int fileContent;
+            while ((fileContent = inputStream.read()) != -1) {
+                fileOut.write(fileContent);
+            }
+            fileOut.flush();
+            return;
         } else {
             httpResponse = generateHttpResponseBody(ResponseType.OK, files);
         }
@@ -59,6 +74,7 @@ public class RequestParser {
     public void start(Socket clientSocket) throws IOException {
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         out = new PrintWriter(clientSocket.getOutputStream(), true);
+        fileOut = new BufferedOutputStream(clientSocket.getOutputStream());
     }
 
     public void stop() throws IOException {
