@@ -10,6 +10,7 @@ public class Main {
         HTTPFileServer server = new HTTPFileServer();
 
         try {
+            server.setFilePath("/home/abdu/Downloads");
             server.start(9899);
         } catch (IOException e) {
             throw new RuntimeException("Server could not be started! \n" + e);

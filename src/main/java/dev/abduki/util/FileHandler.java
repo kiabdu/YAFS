@@ -1,6 +1,7 @@
-package dev.abduki;
+package dev.abduki.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -9,7 +10,7 @@ import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RequestRouter {
+public class FileHandler {
 
     /*
     public RequestRouter(URI filePath) {
@@ -19,14 +20,11 @@ public class RequestRouter {
     */
 
     public Map<String, LocalDate> getFiles(Path filePath) {
-        System.out.println("path: " + filePath);
-
         File folder = new File(filePath.toString());
         HashMap<String, LocalDate> fileInformationMap = new HashMap<>();
 
-
         if (!Files.exists(filePath)) {
-            // TODO: serialize 404 file and return it
+            return null;
         }
 
         if (folder.isFile()) {
@@ -56,5 +54,13 @@ public class RequestRouter {
         information[1] = lastModified.toString();
 
         return information;
+    }
+
+    public static String serializeResponseFile(String filePath) throws IOException {
+        return Files.readString(Path.of(filePath));
+    }
+
+    public static int getFileContentLength(String fileContent) {
+        return fileContent.getBytes().length;
     }
 }

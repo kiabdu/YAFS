@@ -1,9 +1,10 @@
 package dev.abduki;
 
+import dev.abduki.util.FileHandler;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -15,7 +16,9 @@ public class HTTPFileServer {
     private Socket clientSocket;
 
     private RequestParser requestParser;
-    private RequestRouter requestRouter;
+    private FileHandler fileHandler;
+
+    Path baseFilePath;
 
     public void start(int port) throws IOException, URISyntaxException {
         serverSocket = new ServerSocket(port);
@@ -25,16 +28,19 @@ public class HTTPFileServer {
 
             requestParser = new RequestParser();
             requestParser.start(clientSocket);
-            URI requestedPath = requestParser.parse();
-            requestRouter = new RequestRouter();
-            Map<String, LocalDate> files = requestRouter.getFiles(Path.of("/home/abdu/Downloads"));
+            Path requestedPath = requestParser.parse();
+            fileHandler = new FileHandler();
+            Map<String, LocalDate> files = fileHandler.getFiles(Path.of("/home/abdu/Downloads"));
 
             requestParser.send(files);
-            requestParser.flush();
             requestParser.stop();
             clientSocket.close();
         }
 
         //serverSocket.close();
+    }
+
+    public void setFilePath(String baseFilePath) {
+        this.baseFilePath = Path.of(baseFilePath);
     }
 }
