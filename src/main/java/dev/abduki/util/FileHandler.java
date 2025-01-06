@@ -11,14 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FileHandler {
-
-    /*
-    public RequestRouter(URI filePath) {
-        this.filePath = filePath;
-        files = new ArrayList<>();
-    }
-    */
-
     public Map<String, LocalDate> getFiles(Path filePath) {
         File folder = new File(filePath.toString());
         HashMap<String, LocalDate> fileInformationMap = new HashMap<>();

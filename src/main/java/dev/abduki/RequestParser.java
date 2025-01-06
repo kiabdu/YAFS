@@ -5,6 +5,9 @@ import dev.abduki.util.FileHandler;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Map;
@@ -24,17 +27,18 @@ public class RequestParser {
         // http request header format: (0) <HTTP_METHOD> (1) <REQUEST_URI> (2) <HTTP_VERSION>
         String httpRequestHeader = in.readLine();
         String[] requestHeaderParts;
+        String decodedRequestPath;
 
         try {
-            requestHeaderParts = httpRequestHeader.split("\\s+");
+            requestHeaderParts = httpRequestHeader.split("\\s");
+            decodedRequestPath = URLDecoder.decode(requestHeaderParts[1], StandardCharsets.UTF_8);
         } catch (NullPointerException e) {
             throw new NullPointerException("requestHeader was null! \n");
         }
 
         String requestMethod = requestHeaderParts[0];
-        Path requestPath = Path.of(requestHeaderParts[1]);
-        // I dont really need the http version currently but might use it in the future
-        // String httpVersion = requestHeaderParts[2];
+        Path requestPath = Path.of(decodedRequestPath);
+        //String httpVersion = requestHeaderParts[2];
 
         tmpCurrentPath = requestPath.toString();
         return requestPath;
@@ -44,35 +48,64 @@ public class RequestParser {
         String httpResponse;
         // single element? -> probably a file -> get path -> check file status -> second cases
         // condition
+
+        System.out.println("files is null? " + (files == null));
+
         String singleFilePath = files.size() == 1 ? files.entrySet().iterator().next().getKey() : "";
-        File singleFile = singleFilePath.length() >= 1 ? new File(singleFilePath) : null;
+        File singleFile = !singleFilePath.isEmpty() ? new File(singleFilePath) : null;
 
         // in RequestRouter we checked if the filepath exists, else null is returned
-        if (files == null) {
+        if (files == null || (singleFile != null && !singleFile.exists())) {
             httpResponse = generateHttpResponseBody(ResponseType.NOT_FOUND, null);
-        } else if (files.size() == 1 && (singleFile != null && singleFile.isFile())) {
-
-            byte[] fileAsByteStream = new byte[(int) singleFile.length()];
-
-            // read file as stream, write it to fileoutputstream which uses clientSockets outputstream
-            FileInputStream inputStream = new FileInputStream(singleFile);
-            DataInputStream fileIn = new DataInputStream(new BufferedInputStream(singleFile));
-            int fileContent;
-            while ((fileContent = inputStream.read()) != -1) {
-                fileOut.write(fileContent);
-            }
-            fileOut.flush();
+            out.write(httpResponse);
+            out.flush();
             return;
-        } else {
-            httpResponse = generateHttpResponseBody(ResponseType.OK, files);
         }
 
-        out.write(httpResponse);
-        out.flush();
+        if (files.size() == 1 && (singleFile != null && singleFile.isFile())) {
+
+            String contentType = Files.probeContentType(singleFile.toPath());
+            if(contentType == null){
+                contentType = "application/octet-stream";
+            }
+
+            long contentLength = singleFile.length();
+            String contentDisposition = "attachment; filename=\"" + singleFile.getName() + "\"";
+
+            String httpHeaders = String.format("""
+                    HTTP/1.1 200 OK
+                    Content-Type: %s
+                    Content-Length: %d
+                    Content-Disposition: %s\r\n
+                    \r\n""", contentType, contentLength, contentDisposition);
+
+            out.write(httpHeaders);
+            out.flush();
+
+            // stream file content to outputstream of clientsocket
+            try(BufferedInputStream fileIn = new BufferedInputStream(new FileInputStream(singleFile))){
+
+                // to read 8KB chunks instead of single bytes
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+
+                while((bytesRead = fileIn.read(buffer)) != -1){
+                    fileOut.write(buffer, 0, bytesRead);
+                }
+
+                fileOut.flush();
+            } catch (IOException e){
+                throw new IOException("Error streaming file: " + e.getMessage());
+            }
+        } else {
+            httpResponse = generateHttpResponseBody(ResponseType.OK, files);
+            out.write(httpResponse);
+            out.flush();
+        }
     }
 
     public void start(Socket clientSocket) throws IOException {
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
         out = new PrintWriter(clientSocket.getOutputStream(), true);
         fileOut = new BufferedOutputStream(clientSocket.getOutputStream());
     }

@@ -9,7 +9,7 @@ public class Main {
 
         // server loop
         HTTPFileServer server = new HTTPFileServer();
-        HTTPFileServer.baseFilePath = Path.of("/home/abdu");
+        HTTPFileServer.baseFilePath = Path.of("C:\\Users\\abduk\\Downloads");
         try {
             server.start(9899);
         } catch (IOException e) {
