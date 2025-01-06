@@ -1,20 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <title>%s</title>
-</head>
-<body>
-<h1>%s</h1>
-<hr/>
-%s
-<hr/>
+    <head>
+        <title>%s</title>
+        <style>
+            button {
+                background-color: #1E88E5;
+                border: 1px grey solid;
+                border-radius: 5px;
+                color: #fff;
+                padding: 5px;
+            }
 
-<button onclick="uploadFile('')">Upload new file</button>
-</body>
+            button:hover {
+                background-color: #1976D2;
+                padding: 7px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>%s</h1>
+        <hr/>
+        %s
+        <hr/>
+        <form method="post" enctype="multipart/form-data">
+            <input type="file" id="fileToUpload" />
+            <br />
+            <br />
+            <button>upload selected file</button>
+        </form>
+    </body>
 </html>
-
-<script lang="js">
-    function uploadFile(fileToUpload) {
-
-    }
-</script>
